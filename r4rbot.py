@@ -16,15 +16,13 @@ reddit = praw.Reddit(
 )
 
 webhook = os.getenv("WEBHOOK")
-most_recent_time = None
-most_recent_seen = None
+seen_ads = set()
 
 while True:
-    opts = {}
-    if most_recent_seen is not None:
-        opts['before'] = most_recent_seen
-    submissions = list(reddit.subreddit("r4rmontreal").new(limit=5, params=opts))
+    submissions = list(reddit.subreddit("r4rmontreal").new(limit=25))
     submissions.reverse()
+    ads_this_turn = set()
+    print(f"Got {len(submissions)} comments in the listing")
     for submission in submissions:
         name = submission.name
         text = submission.selftext
@@ -37,33 +35,23 @@ while True:
         if author_flair is not None:
             author_name = f"{author_name} ({author_flair})"
 
-        message = {
-            'embeds': [
-                {
-                    'author': {
-                        'name': author_name,
-                        'icon_url': author_icon,
-                    },
-                    'title': title,
-                    'url': url,
-                    'description': text,
-                }
-            ]
-        }
-        print(json.dumps(message))
-        requests.post(webhook, json=message)
+        if name not in seen_ads:
+            message = {
+                'embeds': [
+                    {
+                        'author': {
+                            'name': author_name,
+                            'icon_url': author_icon,
+                        },
+                        'title': title,
+                        'url': url,
+                        'description': text,
+                    }
+                ]
+            }
+            print(json.dumps(message))
+            requests.post(webhook, json=message)
+        ads_this_turn.add(name)
 
-        post_time = datetime.datetime.fromtimestamp(timestamp=submission.created_utc, tz=pytz.utc)
-
-        if most_recent_seen is None:
-            most_recent_seen = name
-            most_recent_time = post_time
-        else:
-            if post_time > most_recent_time:
-                most_recent_seen = name
-                most_recent_time = post_time
-
-
-    time.sleep(300)
-
-#
+    seen_ads = ads_this_turn
+    time.sleep(150)
