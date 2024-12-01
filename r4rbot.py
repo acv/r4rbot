@@ -37,22 +37,23 @@ while True:
     for submission in submissions:       
         print(submission.__dict__)
         name = submission.name
-        text = submission.selftext
-        title = submission.title
-        url = submission.url
-        author = submission.author
-        author_icon = 'https://www.redditstatic.com/shreddit/assets/snoovatar-back-64x64px.png'
-        author_name = '[deleted?]'
-        try:
-            author_icon = author.icon_img
-            author_name = author.name
-            author_flair = submission.author_flair_text
-            if author_flair is not None:
-                author_name = f"{author_name} ({author_flair})"
-        except AttributeError:
-            pass
 
         if name not in seen_ads:
+            text = submission.selftext
+            title = submission.title
+            url = submission.url
+            author = submission.author
+            author_icon = 'https://www.redditstatic.com/shreddit/assets/snoovatar-back-64x64px.png'
+            author_name = '[deleted?]'
+            try:
+                author_icon = author.icon_img
+                author_name = author.name
+                author_flair = submission.author_flair_text
+                if author_flair is not None:
+                    author_name = f"{author_name} ({author_flair})"
+            except AttributeError:
+                pass
+            
             message = {
                 'embeds': [
                     {
