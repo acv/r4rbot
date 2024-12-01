@@ -8,3 +8,4 @@ dist
 pyvenv.cfg
 .env
 r4rbot.today
+r4rbot.log

@@ -4,8 +4,18 @@ import time
 import requests
 import json
 import datetime
+import logging
 
+from logging.handlers import TimedRotatingFileHandler
 from dotenv import load_dotenv
+
+log_handler = TimedRotatingFileHandler('r4rbot.log', when="d", interval=7, backupCount=4)
+log_handler.setFormatter(logging.Formatter('[%(asctime)s][%(name)s][%(levelname)s] %(message)s'))
+
+logger = logging.getLogger()
+logger.addHandler(log_handler)
+logger.setLevel(logging.DEBUG)
+logger.info("Application Started")
 
 load_dotenv()
 
@@ -33,9 +43,9 @@ while True:
     submissions = list(reddit.subreddit("r4rmontreal").new(limit=25))
     submissions.reverse()
     ads_this_turn = set()
-    print(f"Got {len(submissions)} comments in the listing")
+    logger.info(f"Got {len(submissions)} comments in the listing")
     for submission in submissions:       
-        print(submission.__dict__)
+        logger.debug(submission.__dict__)
         name = submission.name
 
         if name not in seen_ads:
@@ -53,7 +63,7 @@ while True:
                     author_name = f"{author_name} ({author_flair})"
             except AttributeError:
                 pass
-            
+
             message = {
                 'embeds': [
                     {
@@ -67,7 +77,7 @@ while True:
                     }
                 ]
             }
-            print(json.dumps(message))
+            logger.info(json.dumps(message))
             requests.post(webhook, json=message)
         ads_this_turn.add(name)
 
