@@ -9,7 +9,7 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 from dotenv import load_dotenv
 
-log_handler = TimedRotatingFileHandler('r4rbot.log', when="d", interval=7, backupCount=4)
+log_handler = TimedRotatingFileHandler('r4rbot.log', encoding="utf8", when="d", interval=7, backupCount=4)
 log_handler.setFormatter(logging.Formatter('[%(asctime)s][%(name)s][%(levelname)s] %(message)s'))
 
 logger = logging.getLogger()
@@ -33,7 +33,7 @@ yesterday_ads = set()
 today = datetime.date.today()
 
 if os.path.exists(TODAY_FILE):
-    with open(TODAY_FILE, "") as in_fp:
+    with open(TODAY_FILE, "r") as in_fp:
         today_ads = set(json.load(in_fp))
 else:
     today_ads = set()
