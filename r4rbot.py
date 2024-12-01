@@ -3,6 +3,8 @@ import praw
 import time
 import requests
 import json
+import datetime
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -13,10 +15,21 @@ reddit = praw.Reddit(
     user_agent="r/r4rmontreal bot by /u/gahmatar",
 )
 
+TODAY_FILE = "r4rbot.today"
+
 webhook = os.getenv("WEBHOOK")
-seen_ads = set()
+# We maintain a lookback that is at least 24h long
+yesterday_ads = set()
+today = datetime.date.today()
+
+if os.path.exists(TODAY_FILE):
+    with open(TODAY_FILE, "") as in_fp:
+        today_ads = set(json.load(in_fp))
+else:
+    today_ads = set()
 
 while True:
+    seen_ads = today_ads | yesterday_ads
     submissions = list(reddit.subreddit("r4rmontreal").new(limit=25))
     submissions.reverse()
     ads_this_turn = set()
@@ -57,5 +70,12 @@ while True:
             requests.post(webhook, json=message)
         ads_this_turn.add(name)
 
-    seen_ads = ads_this_turn
+    if datetime.date.today() > today:
+        yesterday_ads = today_ads
+        today_ads = set()
+        today = datetime.date.today()
+    
+    today_ads |= ads_this_turn
+    with open(TODAY_FILE, "w") as out_fp:
+        json.dump(list(today_ads), out_fp)
     time.sleep(150)
